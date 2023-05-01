@@ -25,9 +25,8 @@ func NewGraph() *Graph {
 }
 
 type GraphNode struct {
-	Name string
-	Data string
-	// TODO should this be the unique node "id" (string)?
+	Name          string
+	Data          string
 	incomingEdges []*GraphNode
 	outgoingEdges []*GraphNode
 }
@@ -99,10 +98,8 @@ func (g *Graph) DepthFirstSearch(startV *GraphNode, exploredMap *map[*GraphNode]
 			g.DepthFirstSearch(node, &explored, orderedNodes, currentLabel)
 		}
 	}
-	fmt.Printf("\nadding vertex to ordered list at position %d: %s\n", len(g.topoSortedOrder), startV.Name)
 	// ordered[currentLabel] = startV
 	g.topoSortedOrder = append(g.topoSortedOrder, startV)
-	fmt.Println("sorted order is now", g.topoSortedOrder)
 }
 
 // TopologicalSort does some basic graph validation (e.g. cycle detection) and then performs a topological sort.
