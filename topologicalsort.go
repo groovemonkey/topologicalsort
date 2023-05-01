@@ -85,27 +85,23 @@ func (g *Graph) IsCyclic() bool {
 }
 
 // DepthFirstSearch performs a depth-first search starting from vertex startV. It uses a map of graphnodes to track which have already been explored
-func (g *Graph) DepthFirstSearch(startV *GraphNode, exploredMap *map[*GraphNode]bool, orderedNodes *[]*GraphNode, currentLabel int) {
+func (g *Graph) DepthFirstSearch(startV *GraphNode, exploredMap *map[*GraphNode]bool) {
 	explored := *exploredMap
-	// ordered := *orderedNodes
 
 	// Mark this node as explored
 	explored[startV] = true
 
 	for _, node := range startV.outgoingEdges {
 		if !explored[node] {
-			currentLabel--
-			g.DepthFirstSearch(node, &explored, orderedNodes, currentLabel)
+			g.DepthFirstSearch(node, &explored)
 		}
 	}
-	// ordered[currentLabel] = startV
 	g.topoSortedOrder = append(g.topoSortedOrder, startV)
 }
 
 // TopologicalSort does some basic graph validation (e.g. cycle detection) and then performs a topological sort.
-// It returns a slice of strings (the node keys which were originally passed in during graph construction), in sorted order (nodes with no dependencies first)
+// It returns a slice of strings (the node keys which were originally passed in during graph construction), in a valid topologically sorted order
 func (g *Graph) TopologicalSort() ([]string, error) {
-	// TODO check off-by-ones in this function...
 	numVertices := len(g.vertices)
 	returnSlice := make([]string, numVertices)
 
@@ -116,14 +112,13 @@ func (g *Graph) TopologicalSort() ([]string, error) {
 
 	// exploredNodes tracks which nodes we've visited and finished exploring
 	exploredNodes := make(map[*GraphNode]bool, numVertices)
-	orderedNodes := make([]*GraphNode, numVertices)
 
 	for _, v := range g.vertices {
 		// if not yet explored
 		_, ok := exploredNodes[v]
 		if !ok {
 			numVertices--
-			g.DepthFirstSearch(v, &exploredNodes, &orderedNodes, numVertices)
+			g.DepthFirstSearch(v, &exploredNodes)
 		}
 	}
 
