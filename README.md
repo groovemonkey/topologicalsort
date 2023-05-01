@@ -13,7 +13,6 @@ If you're doing a Linux package update, that means you ensure you install depend
 - smooth out the vertex registration and edge-adding flow -- maybe add a function that takes an adjacency list (or map) and does the uniqueness/presence-checking internally?
     - a lot of these abstractions are being leaked to the package user, which is ugly
 - add basic tests
-- implement cycle detection
 - make this use generics (not just strings)
 
 ## Features

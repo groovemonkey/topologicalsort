@@ -7,10 +7,8 @@ import (
 // TODO make this use generics (not just strings)
 
 type Graph struct {
-	// TODO length could help make sure all nodes are connected?
-
 	// currently a map of graphnode IDs to graphnode pointers
-	// would this be map[*GraphNode][]*GraphNode?
+	// could this be map[*GraphNode][]*GraphNode?
 	adjacencyList   map[string][]*GraphNode
 	vertices        map[string]*GraphNode
 	topoSortedOrder []*GraphNode
@@ -54,7 +52,6 @@ func (g *Graph) RegisterVertex(name string, data string) error {
 
 // AddEdge adds an edge between two vertices (they need to be looked up by strings, though)
 func (g *Graph) AddEdge(source, dest string) error {
-	// TODO should we just allow this and then somehow check the graph to make sure it's connected? (possibly using 'len'?)
 	// TODO should we just autoregister by calling RegisterVertex from here?
 	sourceNode, ok := g.vertices[source]
 	if !ok {
@@ -79,24 +76,32 @@ func (g *Graph) AddEdge(source, dest string) error {
 	return nil
 }
 
-// TODO implement cycle detection
-func (g *Graph) IsCyclic() bool {
-	return false
-}
-
-// DepthFirstSearch performs a depth-first search starting from vertex startV. It uses a map of graphnodes to track which have already been explored
-func (g *Graph) DepthFirstSearch(startV *GraphNode, exploredMap *map[*GraphNode]bool) {
-	explored := *exploredMap
+// DepthFirstSearch performs a depth-first search starting from vertex node. It uses maps of graphnodes to track which have already been explored and which have been finished
+func (g *Graph) DepthFirstSearch(node *GraphNode, visited, finished map[*GraphNode]bool) (map[*GraphNode]bool, map[*GraphNode]bool, error) {
+	var err error
 
 	// Mark this node as explored
-	explored[startV] = true
+	visited[node] = true
 
-	for _, node := range startV.outgoingEdges {
-		if !explored[node] {
-			g.DepthFirstSearch(node, &explored)
+	for _, neighbor := range g.adjacencyList[node.Name] {
+		_, alreadySeen := visited[neighbor]
+		if alreadySeen {
+			return nil, nil, fmt.Errorf("\ncycle detected: found a back edge from %s to %s", node.Name, neighbor.Name)
+		}
+
+		_, alreadyFinished := finished[neighbor]
+		if !alreadyFinished {
+			visited, finished, err = g.DepthFirstSearch(neighbor, visited, finished)
+			if err != nil {
+				return nil, nil, err
+			}
 		}
 	}
-	g.topoSortedOrder = append(g.topoSortedOrder, startV)
+	// visited[node] = false
+	finished[node] = true
+
+	g.topoSortedOrder = append(g.topoSortedOrder, node)
+	return visited, finished, nil
 }
 
 // TopologicalSort does some basic graph validation (e.g. cycle detection) and then performs a topological sort.
@@ -104,21 +109,21 @@ func (g *Graph) DepthFirstSearch(startV *GraphNode, exploredMap *map[*GraphNode]
 func (g *Graph) TopologicalSort() ([]string, error) {
 	numVertices := len(g.vertices)
 	returnSlice := make([]string, numVertices)
+	visited := make(map[*GraphNode]bool)
+	finished := make(map[*GraphNode]bool)
 
-	// TODO: do we at least have one node without incoming edges?
-	if g.IsCyclic() {
-		return returnSlice, fmt.Errorf("attempted topological sort of a cyclic graph. Topological sort only works on directed, acyclic graphs (DAGs).")
-	}
+	for v, _ := range g.vertices {
+		n := g.vertices[v]
+		// if not yet visited
+		_, inVisited := visited[n]
+		_, inFinished := finished[n]
+		var err error
 
-	// exploredNodes tracks which nodes we've visited and finished exploring
-	exploredNodes := make(map[*GraphNode]bool, numVertices)
-
-	for _, v := range g.vertices {
-		// if not yet explored
-		_, ok := exploredNodes[v]
-		if !ok {
-			numVertices--
-			g.DepthFirstSearch(v, &exploredNodes)
+		if !inVisited && !inFinished {
+			visited, finished, err = g.DepthFirstSearch(n, visited, finished)
+			if err != nil {
+				return returnSlice, err
+			}
 		}
 	}
 
