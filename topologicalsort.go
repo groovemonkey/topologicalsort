@@ -23,19 +23,14 @@ func NewGraph() *Graph {
 }
 
 type GraphNode struct {
-	Name          string
-	Data          string
-	incomingEdges []*GraphNode
-	outgoingEdges []*GraphNode
+	Name string
+	Data string
 }
 
 func NewGraphNode(name, data string) *GraphNode {
 	return &GraphNode{
 		Name: name,
 		Data: data,
-		// incoming and outgoing edges are empty, will be added via [AddEdge]
-		incomingEdges: make([]*GraphNode, 0),
-		outgoingEdges: make([]*GraphNode, 0),
 	}
 }
 
@@ -53,7 +48,7 @@ func (g *Graph) RegisterVertex(name string, data string) error {
 // AddEdge adds an edge between two vertices (they need to be looked up by strings, though)
 func (g *Graph) AddEdge(source, dest string) error {
 	// TODO should we just autoregister by calling RegisterVertex from here?
-	sourceNode, ok := g.vertices[source]
+	_, ok := g.vertices[source]
 	if !ok {
 		return fmt.Errorf("attempted to add edge to unregistered vertex %s", source)
 	}
@@ -70,9 +65,6 @@ func (g *Graph) AddEdge(source, dest string) error {
 	// add edge to adjacencyList
 	g.adjacencyList[source] = append(g.adjacencyList[source], destNode)
 
-	// update node edges
-	sourceNode.outgoingEdges = append(sourceNode.outgoingEdges, destNode)
-	destNode.incomingEdges = append(destNode.incomingEdges, sourceNode)
 	return nil
 }
 
@@ -114,11 +106,12 @@ func (g *Graph) TopologicalSort() ([]string, error) {
 
 	for v, _ := range g.vertices {
 		n := g.vertices[v]
-		// if not yet visited
+
 		_, inVisited := visited[n]
 		_, inFinished := finished[n]
 		var err error
 
+		// if not yet visited and finished, recurse
 		if !inVisited && !inFinished {
 			visited, finished, err = g.DepthFirstSearch(n, visited, finished)
 			if err != nil {
