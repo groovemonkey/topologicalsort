@@ -11,7 +11,7 @@ If you're installing a Linux package, this means you have to ensure that depende
 ## Features
 
 - checks to make sure all vertex references are valid when adding edges
-- pass in whatever string you want to use for unique vertex Names
+- pass in whatever string you want to use for unique vertex Keys
 - supports multiple dependencies (I guess all implementations do this, so I don't know what I'm celebrating)
 
 ## Basic Usage
@@ -26,8 +26,8 @@ import (
 )
 
 func main() {
-	// Create a new graph
-	graph := topologicalsort.NewGraph()
+	// Create a new graph, passing in the type of data we want to use for our nodes
+	graph := topologicalsort.NewGraph("")
 
 	// Register our packages as vertices
 	graph.RegisterVertex("build-essential", "be-data")
@@ -167,7 +167,9 @@ func topoSortHCL(parsedConfig HCLConfig) ([]string, error) {
 	// aspirational / API design
 	// map[string][]string allows each config (uniquely ID'd by a string) to depend on multiple other configs
 	adjacencyList := make(map[string][]string)
-	graph := topologicalsort.NewGraph()
+
+	// Create a new Graph[string] by passing a string to the constructor
+	graph := topologicalsort.NewGraph("")
 
 	// go through the list of parsed configs once, building up an empty adjacency map
 	// this is so we can check for invalid dependencies between configs, which we can't do on the first pass (since we don't yet have a complete set of valid config IDs/names)
@@ -232,4 +234,6 @@ Pretty cool!
 - smooth out the vertex registration and edge-adding flow -- maybe add a function that takes an adjacency list (or map) and does the uniqueness/presence-checking internally? Like graphWithVertices() in the test suite?
     - add exported functions with friendly names? `AddItem` (== RegisterVertex) and `AddDependency` (== AddEdge)?
 - TODO(dcohen) in a future version, `TopologicalSort()` should return the `graph.topoSortedOrder` (pointers, not string Keys or Data)
+- should the graph even keep a toposorted order? Or should that be dynamically generated and immediately returned?
+- does the graph struct make sense? Do we need vertices AND an adjacencylist? I think just the adjacencylist gives us vertices (adjacencylist keys are vertices)
 

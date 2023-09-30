@@ -4,38 +4,37 @@ import (
 	"fmt"
 )
 
-// TODO make this use generics (not just strings)
-
-type Graph struct {
+type Graph[T any] struct {
 	// currently a map of graphnode IDs to graphnode pointers
 	// could this be map[*GraphNode][]*GraphNode?
-	adjacencyList   map[string][]*GraphNode
-	vertices        map[string]*GraphNode
-	topoSortedOrder []*GraphNode
+	adjacencyList   map[string][]*GraphNode[T]
+	vertices        map[string]*GraphNode[T]
+	topoSortedOrder []*GraphNode[T]
 }
 
-func NewGraph() *Graph {
-	return &Graph{
-		adjacencyList:   make(map[string][]*GraphNode),
-		vertices:        make(map[string]*GraphNode),
-		topoSortedOrder: make([]*GraphNode, 0),
+type GraphNode[T any] struct {
+	Key  string
+	Data T
+}
+
+// NewGraph returns an empty graph of the type that's passed in.
+func NewGraph[T any](val T) *Graph[T] {
+	return &Graph[T]{
+		adjacencyList:   make(map[string][]*GraphNode[T]),
+		vertices:        make(map[string]*GraphNode[T]),
+		topoSortedOrder: make([]*GraphNode[T], 0),
 	}
 }
 
-type GraphNode struct {
-	Key  string
-	Data string
-}
-
-func NewGraphNode(key, data string) *GraphNode {
-	return &GraphNode{
+func NewGraphNode[T any](key string, data T) *GraphNode[T] {
+	return &GraphNode[T]{
 		Key:  key,
 		Data: data,
 	}
 }
 
 // RegisterVertex registers a new, unconnected vertex in the graph
-func (g *Graph) RegisterVertex(key string, data string) error {
+func (g *Graph[T]) RegisterVertex(key string, data T) error {
 	_, ok := g.vertices[key]
 	if ok {
 		return fmt.Errorf("attempted to register duplicate vertex")
@@ -46,7 +45,7 @@ func (g *Graph) RegisterVertex(key string, data string) error {
 }
 
 // AddEdge adds an edge between two vertices (they need to be looked up by strings, though)
-func (g *Graph) AddEdge(source, dest string) error {
+func (g *Graph[T]) AddEdge(source, dest string) error {
 	_, ok := g.vertices[source]
 	if !ok {
 		return fmt.Errorf("attempted to add edge to unregistered vertex %s", source)
@@ -68,7 +67,7 @@ func (g *Graph) AddEdge(source, dest string) error {
 }
 
 // DepthFirstSearch performs a depth-first search starting from vertex node. It uses maps of graphnodes to track which have already been explored and which have been finished
-func (g *Graph) DepthFirstSearch(node *GraphNode, visited, finished map[*GraphNode]bool) (map[*GraphNode]bool, map[*GraphNode]bool, error) {
+func (g *Graph[T]) DepthFirstSearch(node *GraphNode[T], visited, finished map[*GraphNode[T]]bool) (map[*GraphNode[T]]bool, map[*GraphNode[T]]bool, error) {
 	var err error
 
 	// Mark this node as explored
@@ -98,7 +97,7 @@ func (g *Graph) DepthFirstSearch(node *GraphNode, visited, finished map[*GraphNo
 
 // SortedKeys returns the sorted order of the graph keys
 // IT DOES NOT SORT THE GRAPH! (use [TopologicalSort] to do that)
-func (g *Graph) SortedKeys() []string {
+func (g *Graph[T]) SortedKeys() []string {
 	// create return slice of keys from ordered node pointers
 	returnSlice := make([]string, len(g.topoSortedOrder))
 
@@ -111,9 +110,9 @@ func (g *Graph) SortedKeys() []string {
 
 // SortedValues returns the sorted order of the graph values
 // IT DOES NOT SORT THE GRAPH! (use [TopologicalSort] to do that)
-func (g *Graph) SortedValues() []string {
+func (g *Graph[T]) SortedValues() []T {
 	// create return slice of data from ordered node pointers
-	returnSlice := make([]string, len(g.topoSortedOrder))
+	returnSlice := make([]T, len(g.topoSortedOrder))
 
 	// iterate through sorted order and return it
 	for i, node := range g.topoSortedOrder {
@@ -124,9 +123,9 @@ func (g *Graph) SortedValues() []string {
 
 // TopologicalSort does some basic graph validation (e.g. cycle detection) and then performs a topological sort.
 // It returns a slice of strings (the node keys which were originally passed in during graph construction), in a valid topologically sorted order
-func (g *Graph) TopologicalSort() ([]string, error) {
-	visited := make(map[*GraphNode]bool)
-	finished := make(map[*GraphNode]bool)
+func (g *Graph[T]) TopologicalSort() ([]string, error) {
+	visited := make(map[*GraphNode[T]]bool)
+	finished := make(map[*GraphNode[T]]bool)
 
 	for _, n := range g.vertices {
 		_, inVisited := visited[n]
@@ -146,7 +145,28 @@ func (g *Graph) TopologicalSort() ([]string, error) {
 	return g.SortedKeys(), nil
 }
 
-func containsNode(nodes []*GraphNode, match *GraphNode) bool {
+// NewGraphFromData accepts a map of GraphNode:[]string, where the string slice represents adjacent node Keys ("dependencies")
+func NewGraphFromData[T any](nodes map[*GraphNode[T]][]string) *Graph[T] {
+	graph := &Graph[T]{
+		adjacencyList:   make(map[string][]*GraphNode[T]),
+		vertices:        make(map[string]*GraphNode[T]),
+		topoSortedOrder: make([]*GraphNode[T], 0),
+	}
+	// Build up the graph
+	for node, adjacencies := range nodes {
+		// Create a graph vertex
+		graph.RegisterVertex(node.Key, node.Data)
+
+		// Add its edges
+		for _, a := range adjacencies {
+			fmt.Println(node.Key, "depends on", a)
+			graph.AddEdge(node.Key, a)
+		}
+	}
+	return graph
+}
+
+func containsNode[T any](nodes []*GraphNode[T], match *GraphNode[T]) bool {
 	for _, n := range nodes {
 		if n == match {
 			return true
