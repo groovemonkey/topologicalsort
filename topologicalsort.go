@@ -97,11 +97,35 @@ func (g *Graph) DepthFirstSearch(node *GraphNode, visited, finished map[*GraphNo
 	return visited, finished, nil
 }
 
+// SortedKeys returns the sorted order of the graph keys
+// IT DOES NOT SORT THE GRAPH! (use [TopologicalSort] to do that)
+func (g *Graph) SortedKeys() []string {
+	// create return slice of names from ordered node pointers
+	returnSlice := make([]string, len(g.topoSortedOrder))
+
+	// iterate through sorted order and return it
+	for i, node := range g.topoSortedOrder {
+		returnSlice[i] = (*node).Name
+	}
+	return returnSlice
+}
+
+// SortedValues returns the sorted order of the graph values
+// IT DOES NOT SORT THE GRAPH! (use [TopologicalSort] to do that)
+func (g *Graph) SortedValues() []string {
+	// create return slice of names from ordered node pointers
+	returnSlice := make([]string, len(g.topoSortedOrder))
+
+	// iterate through sorted order and return it
+	for i, node := range g.topoSortedOrder {
+		returnSlice[i] = (*node).Data
+	}
+	return returnSlice
+}
+
 // TopologicalSort does some basic graph validation (e.g. cycle detection) and then performs a topological sort.
 // It returns a slice of strings (the node keys which were originally passed in during graph construction), in a valid topologically sorted order
 func (g *Graph) TopologicalSort() ([]string, error) {
-	numVertices := len(g.vertices)
-	returnSlice := make([]string, numVertices)
 	visited := make(map[*GraphNode]bool)
 	finished := make(map[*GraphNode]bool)
 
@@ -114,17 +138,13 @@ func (g *Graph) TopologicalSort() ([]string, error) {
 		if !inVisited && !inFinished {
 			visited, finished, err = g.DepthFirstSearch(n, visited, finished)
 			if err != nil {
-				return returnSlice, err
+				return []string{}, err
 			}
 		}
 	}
 
-	// create return slice of names from ordered node pointers
-	for i, n := range g.topoSortedOrder {
-		node := *n
-		returnSlice[i] = node.Name
-	}
-	return returnSlice, nil
+	// TODO(dcohen) in a future version, just return the topoSortedOrder (pointers, not string Keys or Data)
+	return g.SortedKeys(), nil
 }
 
 func containsNode(nodes []*GraphNode, match *GraphNode) bool {

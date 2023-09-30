@@ -12,7 +12,6 @@ If you're doing a Linux package update, that means you ensure you install depend
 
 - smooth out the vertex registration and edge-adding flow -- maybe add a function that takes an adjacency list (or map) and does the uniqueness/presence-checking internally?
     - a lot of these abstractions are being leaked to the package user, which is ugly
-- add basic tests
 - make this use generics (not just strings)
 
 ## Features
@@ -37,10 +36,10 @@ func main() {
 	graph := topologicalsort.NewGraph()
 
 	// Register our packages as vertices
-	graph.RegisterVertex("build-essential", "mydata")
-	graph.RegisterVertex("gcc", "mydata")
-	graph.RegisterVertex("make", "mydata")
-	graph.RegisterVertex("libc", "mydata")
+	graph.RegisterVertex("build-essential", "be-data")
+	graph.RegisterVertex("gcc", "gcc-data")
+	graph.RegisterVertex("make", "make-data")
+	graph.RegisterVertex("libc", "libc-data")
 
 	// Add edges to represent dependencies (e.g. build-essential depends on make and gcc)
 	graph.AddEdge("build-essential", "make")
@@ -55,17 +54,19 @@ func main() {
 		// handle the error
 		panic(err)
 	}
-	fmt.Println("Sorted order:", sorted)
+	fmt.Println("Sorted Keys:", graph.SortedKeys())
+	fmt.Println("Sorted Data:", graph.SortedValues())
 }
 ```
 
 Running this will get you output like:
 
 ```
-Sorted order: [make libc gcc build-essential]
+Sorted Keys: [libc gcc make build-essential]
+Sorted Data: [libc-data gcc-data make-data be-data]
 ```
 
-In other words, if you install the packages in this order, you'll never hit an error due to a missing dependency.
+In practical terms, if you install the packages in this order, you'll never hit an error due to a missing dependency.
 
 
 ## Advanced Usage: enabling dependencies between HCL config blocks
