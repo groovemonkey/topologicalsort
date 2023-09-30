@@ -76,8 +76,8 @@ func (g *Graph) DepthFirstSearch(node *GraphNode, visited, finished map[*GraphNo
 	visited[node] = true
 
 	for _, neighbor := range g.adjacencyList[node.Name] {
-		_, alreadySeen := visited[neighbor]
-		if alreadySeen {
+		alreadySeen, ok := visited[neighbor]
+		if ok && alreadySeen {
 			return nil, nil, fmt.Errorf("\ncycle detected: found a back edge from %s to %s", node.Name, neighbor.Name)
 		}
 
@@ -89,7 +89,8 @@ func (g *Graph) DepthFirstSearch(node *GraphNode, visited, finished map[*GraphNo
 			}
 		}
 	}
-	// visited[node] = false
+	// Remove from visited, mark finished
+	visited[node] = false
 	finished[node] = true
 
 	g.topoSortedOrder = append(g.topoSortedOrder, node)
@@ -104,9 +105,7 @@ func (g *Graph) TopologicalSort() ([]string, error) {
 	visited := make(map[*GraphNode]bool)
 	finished := make(map[*GraphNode]bool)
 
-	for v, _ := range g.vertices {
-		n := g.vertices[v]
-
+	for _, n := range g.vertices {
 		_, inVisited := visited[n]
 		_, inFinished := finished[n]
 		var err error
