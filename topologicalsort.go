@@ -47,7 +47,6 @@ func (g *Graph) RegisterVertex(name string, data string) error {
 
 // AddEdge adds an edge between two vertices (they need to be looked up by strings, though)
 func (g *Graph) AddEdge(source, dest string) error {
-	// TODO should we just autoregister by calling RegisterVertex from here?
 	_, ok := g.vertices[source]
 	if !ok {
 		return fmt.Errorf("attempted to add edge to unregistered vertex %s", source)

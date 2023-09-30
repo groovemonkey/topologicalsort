@@ -6,13 +6,7 @@ This is a small library I built to scratch a personal itch.
 
 A directed acyclic graph (DAG) is often used to represent dependencies between things (packages that must be installed, but which may depend on other packages; Terraform resources which may depend on other resources existing; that kind of thing). The output of a topological sort is the vertices of a graph, ordered such that the dependencies of each vertex occur before that vertex.
 
-If you're doing a Linux package update, that means you ensure you install dependencies first; if you're building infrastructure that means Terraform knows to create your VPC before it creates all the stuff that you put inside that VPC.
-
-## TODOs
-
-- smooth out the vertex registration and edge-adding flow -- maybe add a function that takes an adjacency list (or map) and does the uniqueness/presence-checking internally?
-    - a lot of these abstractions are being leaked to the package user, which is ugly
-- make this use generics (not just strings)
+If you're installing a Linux package, this means you have to ensure that dependencies (and all their dependencies) are installed before you install the package; if you're building infrastructure it means Terraform must create your VPC before it creates all the stuff which gets placed inside that VPC. Topological sort is an algorithm that quickly works out a valid order.
 
 ## Features
 
@@ -230,4 +224,12 @@ Running this should result in one of the valid topologically sorted orders, e.g.
 ```
 
 Pretty cool!
+
+
+## TODOs
+
+- use generics for Node Data (not just strings)
+- smooth out the vertex registration and edge-adding flow -- maybe add a function that takes an adjacency list (or map) and does the uniqueness/presence-checking internally? Like graphWithVertices() in the test suite?
+    - add exported functions with friendly names? `AddItem` (== RegisterVertex) and `AddDependency` (== AddEdge)?
+- TODO(dcohen) in a future version, `TopologicalSort()` should return the `graph.topoSortedOrder` (pointers, not string Keys or Data)
 
