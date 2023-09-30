@@ -43,7 +43,7 @@ func main() {
 	graph.RegisterVertex("libc", "mydata")
 
 	// Add edges to represent dependencies (e.g. build-essential depends on make and gcc)
-	graph.AddEdge("build_essential", "make")
+	graph.AddEdge("build-essential", "make")
 	graph.AddEdge("build-essential", "gcc")
 
 	// some of those dependencies have other dependencies (e.g. gcc depends on libc)
