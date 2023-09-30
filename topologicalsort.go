@@ -23,25 +23,25 @@ func NewGraph() *Graph {
 }
 
 type GraphNode struct {
-	Name string
+	Key  string
 	Data string
 }
 
-func NewGraphNode(name, data string) *GraphNode {
+func NewGraphNode(key, data string) *GraphNode {
 	return &GraphNode{
-		Name: name,
+		Key:  key,
 		Data: data,
 	}
 }
 
 // RegisterVertex registers a new, unconnected vertex in the graph
-func (g *Graph) RegisterVertex(name string, data string) error {
-	_, ok := g.vertices[name]
+func (g *Graph) RegisterVertex(key string, data string) error {
+	_, ok := g.vertices[key]
 	if ok {
 		return fmt.Errorf("attempted to register duplicate vertex")
 	}
 	// create a new GraphNode and register a pointer to it
-	g.vertices[name] = NewGraphNode(name, data)
+	g.vertices[key] = NewGraphNode(key, data)
 	return nil
 }
 
@@ -74,10 +74,10 @@ func (g *Graph) DepthFirstSearch(node *GraphNode, visited, finished map[*GraphNo
 	// Mark this node as explored
 	visited[node] = true
 
-	for _, neighbor := range g.adjacencyList[node.Name] {
+	for _, neighbor := range g.adjacencyList[node.Key] {
 		alreadySeen, ok := visited[neighbor]
 		if ok && alreadySeen {
-			return nil, nil, fmt.Errorf("\ncycle detected: found a back edge from %s to %s", node.Name, neighbor.Name)
+			return nil, nil, fmt.Errorf("\ncycle detected: found a back edge from %s to %s", node.Key, neighbor.Key)
 		}
 
 		_, alreadyFinished := finished[neighbor]
@@ -99,12 +99,12 @@ func (g *Graph) DepthFirstSearch(node *GraphNode, visited, finished map[*GraphNo
 // SortedKeys returns the sorted order of the graph keys
 // IT DOES NOT SORT THE GRAPH! (use [TopologicalSort] to do that)
 func (g *Graph) SortedKeys() []string {
-	// create return slice of names from ordered node pointers
+	// create return slice of keys from ordered node pointers
 	returnSlice := make([]string, len(g.topoSortedOrder))
 
 	// iterate through sorted order and return it
 	for i, node := range g.topoSortedOrder {
-		returnSlice[i] = (*node).Name
+		returnSlice[i] = (*node).Key
 	}
 	return returnSlice
 }
@@ -112,7 +112,7 @@ func (g *Graph) SortedKeys() []string {
 // SortedValues returns the sorted order of the graph values
 // IT DOES NOT SORT THE GRAPH! (use [TopologicalSort] to do that)
 func (g *Graph) SortedValues() []string {
-	// create return slice of names from ordered node pointers
+	// create return slice of data from ordered node pointers
 	returnSlice := make([]string, len(g.topoSortedOrder))
 
 	// iterate through sorted order and return it
