@@ -1,7 +1,6 @@
 package topologicalsort
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -95,6 +94,28 @@ func TestGraph_TopologicalSort(t *testing.T) {
 			wantErr:   true,
 		},
 		{
+			name: "Replicate broken arbitrary-data test",
+			adjacency_list: map[string][]string{
+				"three": {"two"},
+				"one":   {""},
+				"two":   {"one"},
+			},
+			dummyData: "",
+			want:      []string{"one", "two", "three"},
+			wantErr:   false,
+		},
+		{
+			name: "Replicate broken arbitrary-data cycle test",
+			adjacency_list: map[string][]string{
+				"three": {"two"},
+				"one":   {"three"},
+				"two":   {"one"},
+			},
+			dummyData: "",
+			want:      []string{},
+			wantErr:   true,
+		},
+		{
 			name: "Test Generics: a graph using integer data still works",
 			adjacency_list: map[string][]string{
 				"one": {},
@@ -156,7 +177,7 @@ func Test_TopographicSort_With_Arbitrary_Data(t *testing.T) {
 						floob: "dataforone",
 						burb:  1,
 					},
-				}: {},
+				}: {"three"},
 				// node two
 				{
 					Key: "two",
@@ -172,10 +193,13 @@ func Test_TopographicSort_With_Arbitrary_Data(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			g := NewGraphFromData(tt.graph_data)
+			// Create the graph
+			g, err := NewGraphFromData(tt.graph_data)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("NewGraphFromData: expected graph creation to succeed. error=%v", err)
+			}
 
 			got, err := g.TopologicalSort()
-			fmt.Println(fmt.Sprintf("%+v", g))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Graph.TopologicalSort() error = %v, wantErr %v", err, tt.wantErr)
 				return

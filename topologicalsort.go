@@ -53,7 +53,7 @@ func (g *Graph[T]) AddEdge(source, dest string) error {
 
 	destNode, ok := g.vertices[dest]
 	if !ok {
-		return fmt.Errorf("attempted to add edge to unregistered vertex %s", source)
+		return fmt.Errorf("attempted to add edge from unregistered vertex %s", dest)
 	}
 
 	// prevent duplicate additions to adjacencyList
@@ -145,8 +145,10 @@ func (g *Graph[T]) TopologicalSort() ([]string, error) {
 	return g.SortedKeys(), nil
 }
 
-// NewGraphFromData accepts a map of GraphNode:[]string, where the string slice represents adjacent node Keys ("dependencies")
-func NewGraphFromData[T any](nodes map[*GraphNode[T]][]string) *Graph[T] {
+// NewGraphFromData accepts a map of GraphNode:[]string, where the string slice represents adjacent node Keys ("dependencies").
+// It returns a graph pointer, or an error if something went wrong.
+func NewGraphFromData[T any](nodes map[*GraphNode[T]][]string) (*Graph[T], error) {
+	var err error
 	graph := &Graph[T]{
 		adjacencyList:   make(map[string][]*GraphNode[T]),
 		vertices:        make(map[string]*GraphNode[T]),
@@ -155,15 +157,21 @@ func NewGraphFromData[T any](nodes map[*GraphNode[T]][]string) *Graph[T] {
 	// Build up the graph
 	for node, adjacencies := range nodes {
 		// Create a graph vertex
-		graph.RegisterVertex(node.Key, node.Data)
+		err = graph.RegisterVertex(node.Key, node.Data)
+		if err != nil {
+			return nil, err
+		}
 
 		// Add its edges
 		for _, a := range adjacencies {
 			fmt.Println(node.Key, "depends on", a)
-			graph.AddEdge(node.Key, a)
+			err = graph.AddEdge(node.Key, a)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
-	return graph
+	return graph, nil
 }
 
 func containsNode[T any](nodes []*GraphNode[T], match *GraphNode[T]) bool {
