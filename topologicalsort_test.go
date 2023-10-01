@@ -177,7 +177,7 @@ func Test_TopographicSort_With_Arbitrary_Data(t *testing.T) {
 						floob: "dataforone",
 						burb:  1,
 					},
-				}: {"three"},
+				}: {},
 				// node two
 				{
 					Key: "two",

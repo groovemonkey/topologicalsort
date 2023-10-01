@@ -154,17 +154,17 @@ func NewGraphFromData[T any](nodes map[*GraphNode[T]][]string) (*Graph[T], error
 		vertices:        make(map[string]*GraphNode[T]),
 		topoSortedOrder: make([]*GraphNode[T], 0),
 	}
-	// Build up the graph
-	for node, adjacencies := range nodes {
-		// Create a graph vertex
+	// Iterate through vertices to build up the graph
+	for node := range nodes {
 		err = graph.RegisterVertex(node.Key, node.Data)
 		if err != nil {
 			return nil, err
 		}
+	}
 
-		// Add its edges
+	// Add edges between vertices
+	for node, adjacencies := range nodes {
 		for _, a := range adjacencies {
-			fmt.Println(node.Key, "depends on", a)
 			err = graph.AddEdge(node.Key, a)
 			if err != nil {
 				return nil, err
