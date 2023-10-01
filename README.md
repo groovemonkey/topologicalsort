@@ -15,6 +15,12 @@ If you're installing a Linux package, this means you have to ensure that depende
 - uses strings for vertex keys
 - supports multiple dependencies (I guess all implementations do this, so I don't know what I'm celebrating, but this was the original itch I wanted to scratch)
 
+## Primitives
+- `NewGraph(T type)` creates an empty graph where items contain data of type `type`
+- add items (vertices) with `AddItem` or `RegisterVertex` (they are equivalent)
+- add dependencies (edges) with `AddDependency` or `AddEdge` (they are equivalent)
+- `NewGraphFromData` is a constructor which creates a graph from structured input data.
+
 ## Basic Usage
 
 ```go
@@ -31,16 +37,18 @@ func main() {
 	graph := topologicalsort.NewGraph("")
 
 	// Register our packages as vertices
-	graph.RegisterVertex("build-essential", "be-data")
-	graph.RegisterVertex("gcc", "gcc-data")
+	graph.AddItem("build-essential", "be-data")
+	graph.AddItem("gcc", "gcc-data")
+	// AddItem and RegisterVertex are equivalent
 	graph.RegisterVertex("make", "make-data")
 	graph.RegisterVertex("libc", "libc-data")
 
 	// Add edges to represent dependencies (e.g. build-essential depends on make and gcc)
-	graph.AddEdge("build-essential", "make")
-	graph.AddEdge("build-essential", "gcc")
+	graph.AddDependency("build-essential", "make")
+	graph.AddDependency("build-essential", "gcc")
 
 	// some of those dependencies have other dependencies (e.g. gcc depends on libc)
+	// AddDependency and AddEdge are equivalent
 	graph.AddEdge("gcc", "libc")
 
 	// perform a topological sort of the graph
@@ -49,7 +57,7 @@ func main() {
 		// handle the error
 		panic(err)
 	}
-	fmt.Println("Sorted Keys:", graph.SortedKeys())
+	fmt.Println("Sorted Keys:", sorted, "are also available via", graph.SortedKeys())
 	fmt.Println("Sorted Data:", graph.SortedValues())
 }
 ```
@@ -57,8 +65,8 @@ func main() {
 Running this will get you output like:
 
 ```
-Sorted Keys: [libc gcc make build-essential]
-Sorted Data: [libc-data gcc-data make-data be-data]
+Sorted Keys: [libc make gcc build-essential] are also available via [libc make gcc build-essential]
+Sorted Data: [libc-data make-data gcc-data be-data]
 ```
 
 In practical terms, if you install the packages in this order, you'll never hit an error due to a missing dependency.
@@ -230,8 +238,6 @@ Pretty cool!
 
 ## TODOs
 
-- smooth out the vertex registration and edge-adding flow -- maybe add a function that takes an adjacency list (or map) and does the uniqueness/presence-checking internally? Like graphWithVertices() in the test suite?
-    - add exported functions with friendly names? `AddItem` (== RegisterVertex) and `AddDependency` (== AddEdge)?
 - TODO(dcohen) in a future version, `TopologicalSort()` should return the `graph.topoSortedOrder` (pointers, not string Keys or Data)
 - should the graph even keep a toposorted order? Or should that be dynamically generated and immediately returned?
 - does the graph struct make sense? Do we need vertices AND an adjacencylist? I think just the adjacencylist gives us vertices (adjacencylist keys are vertices)

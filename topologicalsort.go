@@ -44,6 +44,11 @@ func (g *Graph[T]) RegisterVertex(key string, data T) error {
 	return nil
 }
 
+// AddItem is a more user-friendly alias for [RegisterVertex]
+func (g *Graph[T]) AddItem(key string, data T) error {
+	return g.RegisterVertex(key, data)
+}
+
 // AddEdge adds an edge between two vertices (they need to be looked up by strings, though)
 func (g *Graph[T]) AddEdge(source, dest string) error {
 	_, ok := g.vertices[source]
@@ -64,6 +69,11 @@ func (g *Graph[T]) AddEdge(source, dest string) error {
 	g.adjacencyList[source] = append(g.adjacencyList[source], destNode)
 
 	return nil
+}
+
+// AddDependency is a more user-friendly alias for [AddEdge]
+func (g *Graph[T]) AddDependency(source, dest string) error {
+	return g.AddEdge(source, dest)
 }
 
 // DepthFirstSearch performs a depth-first search starting from vertex node. It uses maps of graphnodes to track which have already been explored and which have been finished
