@@ -10,9 +10,10 @@ If you're installing a Linux package, this means you have to ensure that depende
 
 ## Features
 
+- uses generics for Node Data (attach any type of data you like!)
 - checks to make sure all vertex references are valid when adding edges
-- pass in whatever string you want to use for unique vertex Keys
-- supports multiple dependencies (I guess all implementations do this, so I don't know what I'm celebrating)
+- uses strings for vertex keys
+- supports multiple dependencies (I guess all implementations do this, so I don't know what I'm celebrating, but this was the original itch I wanted to scratch)
 
 ## Basic Usage
 
@@ -175,7 +176,6 @@ func topoSortHCL(parsedConfig HCLConfig) ([]string, error) {
 	// this is so we can check for invalid dependencies between configs, which we can't do on the first pass (since we don't yet have a complete set of valid config IDs/names)
 	for _, cfg := range parsedConfig.Configs {
 		// add the config as a vertex
-		// TODO registervertex won't be able to take arbitrary data like RegisterVertex(cfg.Name, cfg) until I add support for generics
 		graph.RegisterVertex(cfg.Name, "dummy")
 
 		// add the config ID (name) to our (incomplete) adjacency list
@@ -230,7 +230,6 @@ Pretty cool!
 
 ## TODOs
 
-- use generics for Node Data (not just strings)
 - smooth out the vertex registration and edge-adding flow -- maybe add a function that takes an adjacency list (or map) and does the uniqueness/presence-checking internally? Like graphWithVertices() in the test suite?
     - add exported functions with friendly names? `AddItem` (== RegisterVertex) and `AddDependency` (== AddEdge)?
 - TODO(dcohen) in a future version, `TopologicalSort()` should return the `graph.topoSortedOrder` (pointers, not string Keys or Data)
